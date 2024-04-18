@@ -66,6 +66,7 @@ def exploratory_data_analysis():
 
 
 
+
   # Streamlit app
   st.subheader('Distribution of Rental Prices Across Different Types of Educational Facilities for small community')
 
@@ -218,11 +219,7 @@ def machine_learning_modeling():
         prediction = model.predict(input_df)
 
         # Display the prediction
-        st.write(f"""
-        <div style="background-color:#E5F4E3; padding: 8px; border-radius: 8px;">
-            <h3 style="color:#009900;">Predicted Rental Price: ${prediction[0]:,.2f}</h3>
-        </div>
-        """, unsafe_allow_html=True)
+        st.success(f"Predicted Rental Price: ${prediction[0]:,.2f}")
 
     # Chat Box
     st.subheader("Have questions? Ask our Assistant!")
