@@ -65,7 +65,7 @@ def exploratory_data_analysis():
   st.plotly_chart(fig)
 
 
-  st.subheader('Relationship Between Healthcare Facilities and Rental Prices in Small Community')
+  '''st.subheader('Relationship Between Healthcare Facilities and Rental Prices in Small Community')
 
 # Create a scatter plot using Plotly Express
   small_communities = data[data['Population'] < 10000]
@@ -85,7 +85,7 @@ def exploratory_data_analysis():
                  )
 
 # Show the plot using Streamlit
-  st.plotly_chart(fig)
+  st.plotly_chart(fig)'''
 
   # Streamlit app
   st.subheader('Distribution of Rental Prices Across Different Types of Educational Facilities for small community')
