@@ -1,8 +1,13 @@
 import streamlit as st
+import sklearn
 import pandas as pd
 import plotly.express as px
 import joblib
 import folium
+import statsmodels
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 
 # Load the dataset with a specified encoding
@@ -64,7 +69,27 @@ def exploratory_data_analysis():
 # Show the plot using Streamlit
   st.plotly_chart(fig)
 
+  st.subheader('Relationship Between Healthcare Facilities and Rental Prices in Small Community')
 
+# Create a scatter plot using Plotly Express
+  small_communities = data[data['Population'] < 10000]
+  fig = px.scatter(small_communities,
+                 x='healthcare_count',
+                 y='Price',
+                 trendline='ols',  # Add linear regression trendline
+                 labels={'Price': 'Rental Price ($)', 'healthcare_count': 'Number of Healthcare Facilities'},
+                 color_discrete_sequence=['salmon']
+                )
+
+# Update layout
+  fig.update_layout(xaxis=dict(title='Number of Healthcare Facilities'),
+                  yaxis=dict(title='Rental Price ($)'),
+                  plot_bgcolor='rgba(0,0,0,0)',
+                  paper_bgcolor='rgba(0,0,0,0)',
+                 )
+
+# Show the plot using Streamlit
+  st.plotly_chart(fig)
 
 
   # Streamlit app
@@ -155,37 +180,7 @@ def exploratory_data_analysis():
 # Show the plot using Streamlit
   st.plotly_chart(fig)
 
-  # Filter the dataset for culture facilities
-  culture_data = data[data['cultural_facilityname'].notnull()]
 
-# Define the cultural facilities to include in the pie chart
-  cultural_facilities_to_include = ["['museum']","['art or cultural centre', 'museum', 'heritage or historic site']",
-                                  "['library or archives']",
-                                  "['miscellaneous']",
-                                  "['museum', 'heritage or historic site', 'gallery']",
-                                  "['theatre/performance and concert hall']"]
-
-# Filter the data for the specified cultural facilities
-  filtered_data = culture_data[culture_data['cultural_facilityname'].apply(lambda x: x in cultural_facilities_to_include)]
-
-# Count the occurrences of each cultural facility
-  culture_count = filtered_data['cultural_facilityname'].value_counts().reset_index()
-  culture_count.columns = ['Cultural Facility', 'Count']
-
-# Streamlit app
-  st.subheader('Pie Chart of most popular Cultural Facilities for small community')
-
-# Create a pie chart using Plotly Express
-  fig = px.pie(culture_count,
-             values='Count',
-             names='Cultural Facility',
-             title='Distribution of Selected Cultural Facilities',
-             hole=0.4,  # Size of the center hole
-             color_discrete_sequence=px.colors.qualitative.Pastel  # Color palette
-            )
-
-# Show the plot using Streamlit
-  st.plotly_chart(fig)
 
 
 # Page 3: Machine Learning Modeling
@@ -219,7 +214,56 @@ def machine_learning_modeling():
         prediction = model.predict(input_df)
 
         # Display the prediction
-        st.success(f"Predicted Rental Price: ${prediction[0]:,.2f}")
+        st.write(f"""
+        <div style="background-color:#E5F4E3; padding: 8px; border-radius: 8px;">
+            <h3 style="color:#009900;">Predicted Rental Price: ${prediction[0]:,.2f}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Chat Box
+    st.subheader("Have questions? Ask our Assistant!")
+    chatbot_url = "https://hf.co/chat/assistant/6618ba66044cc6a08eefa689"
+    st.markdown(f'<iframe src="{chatbot_url}" width="500" height="500"></iframe>', unsafe_allow_html=True)
+
+def machine_learning_page():
+    st.title("Kijiji Rental Type Prediction")
+    st.write("Enter the details of the property to predict the type of property:")
+
+    # Input fields for user to enter data
+    st.subheader("Property Details:")
+    unique_locations = data['CSDNAME'].unique()
+    location = st.selectbox("Location", unique_locations)
+    size = st.slider("Size (sqft)", 300, 5000, 1000)
+    price = st.slider("Price ($)", 500, 10000, 1500)
+    bedrooms = st.selectbox('Number of Bedrooms', options=[0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0], format_func=lambda x: f"{x:.1f}", index=1)
+    bathrooms = st.selectbox('Number of Bathrooms', options=[0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0], format_func=lambda x: f"{x:.1f}", index=1)
+
+    if st.button("Predict", key='predict_button'):
+        # Load the trained model including preprocessing
+        model = joblib.load('rental_type_prediction_model.pkl')
+
+        # Prepare input data as a DataFrame to match the training data structure
+        input_df = pd.DataFrame({
+            'Bedrooms': [bedrooms],
+            'Bathrooms': [bathrooms],
+            'Size': [size],
+            'Price': [price],
+            'CSDNAME': [location]
+        })
+
+        # Drop 'Agreement Type' column if exists
+        if 'Agreement Type' in input_df.columns:
+            input_df.drop(columns=['Agreement Type'], inplace=True)
+
+        # Make prediction
+        prediction = model.predict(input_df)
+
+        # Display the prediction
+        st.write(f"""
+        <div style="background-color:#E5F4E3; padding: 8px; border-radius: 8px;">
+            <h3 style="color:#009900;">Predicted Rental Type: {prediction[0]}</h3>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Chat Box
     st.subheader("Have questions? Ask our Assistant!")
@@ -290,7 +334,7 @@ def Lookerstudio():
 # Main App Logic
 def main():
     st.sidebar.title("Kijiji Community App")
-    app_page = st.sidebar.radio("Select a Page", ["Dashboard", "EDA", "ML Modeling", "Community Mapping", "Small Community Mapping","Lookerstudio"])
+    app_page = st.sidebar.radio("Select a Page", ["Dashboard", "EDA", "ML Modeling" , "ML Modeling(Type)","Community Mapping", "Small Community Mapping","Lookerstudio"])
 
     if app_page == "Dashboard":
         dashboard()
@@ -298,12 +342,15 @@ def main():
         exploratory_data_analysis()
     elif app_page == "ML Modeling":
         machine_learning_modeling()
+    elif app_page == "ML Modeling(Type)":
+        machine_learning_page()
     elif app_page == "Community Mapping":
         community_mapping()
     elif app_page == "Small Community Mapping":
         small_community_mapping()
     elif app_page == "Lookerstudio":
         Lookerstudio()
+
 
 if __name__ == "__main__":
     main()
