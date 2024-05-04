@@ -181,8 +181,6 @@ def exploratory_data_analysis():
   st.plotly_chart(fig)
 
 
-
-
 # Page 3: Machine Learning Modeling
 def machine_learning_modeling():
     st.title("Kijiji Rental Price Prediction")
@@ -334,13 +332,13 @@ def Lookerstudio():
 # Main App Logic
 def main():
     st.sidebar.title("Kijiji Community App")
-    app_page = st.sidebar.radio("Select a Page", ["Dashboard", "EDA", "ML Modeling" , "ML Modeling(Type)","Community Mapping", "Small Community Mapping","Lookerstudio"])
+    app_page = st.sidebar.radio("Select a Page", ["Dashboard", "EDA", "ML Modeling(Price)" , "ML Modeling(Type)","Community Mapping", "Small Community Mapping","Google's Looker Studio"])
 
     if app_page == "Dashboard":
         dashboard()
     elif app_page == "EDA":
         exploratory_data_analysis()
-    elif app_page == "ML Modeling":
+    elif app_page == "ML Modeling(Price)":
         machine_learning_modeling()
     elif app_page == "ML Modeling(Type)":
         machine_learning_page()
@@ -348,7 +346,7 @@ def main():
         community_mapping()
     elif app_page == "Small Community Mapping":
         small_community_mapping()
-    elif app_page == "Lookerstudio":
+    elif app_page == "Google's Looker Studio":
         Lookerstudio()
 
 
